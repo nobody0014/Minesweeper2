@@ -8,7 +8,7 @@ import javax.swing.*;
  */
 public class MinesweeperTD {
     public static void main(String[] args){
-        JFrame frame = new JFrame();
-
+        Controller c = new Controller();
+        c.setUpFrame();
     }
 }

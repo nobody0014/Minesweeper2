@@ -7,7 +7,7 @@ import javax.swing.*;
  * Created by wit on 7/14/2016.
  */
 public class Controller {
-    private Model gameProcessor;
+    private Model gameModel;
     private View boardPainter;
     private JFrame mainFrame;
     private TimeThread timeThread;
@@ -33,8 +33,92 @@ public class Controller {
 
 
 
-
+    public Controller(){
+        gameModel = new Model();
+        boardPainter = new View();
+    }
     public void setUpFrame(){
+        int x = gameModel.getGridX();
+        int y = gameModel.getGridY();
+        tk =  Toolkit.getDefaultToolkit();
+        dim = tk.getScreenSize();
+
+        mainFrame = new JFrame("Main");
+
+
+        //Call resize frame to set size for you
+        resizeFrame();
+
+        //Set up menuBar and add its item
+        setUpMenu();
+        mainFrame.setJMenuBar(menuBar);
+
+
+        //Set some screen properties
+        centerTheFrame();
+        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        mainFrame.setResizable(false);
+
+
+        controlContainer = mainFrame.getContentPane();
+        controlContainer.setSize(mainFrame.getWidth(),mainFrame.getHeight());
+        controlLayout = new GridBagLayout();
+        controlContainer.setLayout(controlLayout);
+
+        //Creating info panel to keep all the stuff on top of the frame
+        infoPanel = new JPanel();
+        infoConstraint = new GridBagConstraints();
+        infoConstraint.gridy = 0;
+        infoConstraint.fill = GridBagConstraints.HORIZONTAL;
+        infoConstraint.anchor = GridBagConstraints.PAGE_START;
+        controlContainer.add(infoPanel,infoConstraint);
+
+        //this constraint is used for all the components in the infopanel
+        GridBagConstraints innerInfor = new GridBagConstraints();
+
+        //Creating and setting the field that has the number of markers
+        markersNo = new JTextField();
+        markersNo.setPreferredSize(new Dimension(80,30));
+        markersNo.setLayout(new GridBagLayout());
+        markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
+        innerInfor.gridx = 0;
+        infoPanel.add(markersNo,innerInfor);
+
+        //Creating the new game button
+        newGameB = new JButton();
+        newGameB.addActionListener(new NewGameListener());
+        newGameB.setPreferredSize(new Dimension(50,50));
+        newGameB.setText("NG");
+        newGameB.setLayout(new GridBagLayout());
+        innerInfor.gridx = 1;
+        infoPanel.add(newGameB,innerInfor);
+
+        //Creating the field to show how much time has elapsed since the game started
+        timeField = new JTextField();
+        timeField.setPreferredSize(new Dimension(80,30));
+        timeField.setLayout(new GridBagLayout());
+        timeField.setText("Time = " + 0);
+        innerInfor.gridx = 2;
+        infoPanel.add(timeField,innerInfor);
+
+        infoPanel.setVisible(true);
+
+        //The actual game area creation
+        gamePanel = new JPanel();
+        gameLayout = new GridBagLayout();
+        gameConstraint = new GridBagConstraints();
+        gamePanel.setLayout(gameLayout);
+        gameConstraint.gridy = 1;
+        gameConstraint.anchor = GridBagConstraints.CENTER;
+        gameConstraint.fill = GridBagConstraints.BOTH;
+//        gameConstraint.ipady = GC.getGridY()*45;
+        controlContainer.add(gamePanel,gameConstraint);
+
+        //Only the game and info panel are needed to be added into controlcontainer
+
+        //Make the actual game grid
+
+        mainFrame.setVisible(true);
 
     }
     public void setUpMenu(){
@@ -72,11 +156,11 @@ public class Controller {
     }
 
     public void resizeFrame(){
-        if(x*45 > 450){
-            mainFrame.setSize(x * 45 + 25, 150 + y*45);
+        if(gameModel.getGridX()*45 > 450){
+            mainFrame.setSize(gameModel.getGridX() * 45 + 25, 150 + gameModel.getGridY()*45);
         }
         else{
-            mainFrame.setSize(450, 150 +y       *45);
+            mainFrame.setSize(450, 150 + gameModel.getGridY()   *45);
         }
     }
 
@@ -86,22 +170,68 @@ public class Controller {
         Model.firstClick = false;
         Model.gameOver = false;
         System.out.println("Resetting.....  ");
-        gameProcessor = new Model(gameProcessor.getGridX(),gameProcessor.getGridY(),gameProcessor.getNumberOfBombs());
+        gameModel = new Model(gameModel.getGridX(),gameModel.getGridY(),gameModel.getNumberOfBombs());
         gamePanel.removeAll();
         gamePanel.setVisible(false);
-        gameProcessor.makeBoard();
+//        gameProcessor.makeBoard();
         controlContainer.add(gamePanel,gameConstraint);
         gamePanel.setVisible(true);
         System.out.println("Done");
-        markersNo.setText("Markers = " + gameProcessor.getNoMarkersAvail());
+        markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
         timeThread.stop();
         timeField.setText("Time = " + 0);
     }
 
+
+
+    public void makeGrid(){
+
+    }
+    public void makeGrid(int[][] board){
+
+    }
+
+
+    private class FirstButtonClickListener implements ActionListener{
+        public void actionPerformed(ActionEvent e){
+            if(!Model.firstClick){
+                int[] pos = (int[]) e.getSource();
+                System.out.println("Set up new board");
+                gameModel.setUpBoard(pos);
+                System.out.println("Done");
+                System.out.println("Put in the UI");
+                makeGrid(gameModel.getBoard());
+                System.out.println("Done");
+                Model.firstClick = true;
+                System.out.println(gameModel.boardString());
+                System.out.println("Revealing the opening moves");
+                System.out.println("Getting area to reveal");
+                Set<int[]> someArea = gameModel.getAreaToReveal(pos, new HashSet<>());
+                someArea.add(pos);
+                System.out.println("Done");
+                for (int[] i: someArea){
+                    System.out.println(Arrays.toString(i));
+                    gameModel.revealedArea.add(i);
+//                    gameModel[i[0]][i[1]].reveal();
+                }
+                System.out.println("Done");
+                timeThread.start();
+            }
+        }
+    }
     //Overloaded method for changing level
     public void newGame(int level){
-        gameProcessor.changeLevel(level);
+        gameModel.changeLevel(level);
         newGame();
+    }
+
+    //For the new game button, reset the board
+    private class NewGameListener implements ActionListener{
+        public void actionPerformed(ActionEvent e){
+            if(Model.firstClick){
+                newGame();
+            }
+        }
     }
 
 
@@ -112,7 +242,7 @@ public class Controller {
             this.level = level;
         }
         public void actionPerformed(ActionEvent e){
-            if(gameProcessor.getLevel() != level){
+            if(gameModel.getLevel() != level){
                 newGame(level);
                 resizeFrame();
                 centerTheFrame();
