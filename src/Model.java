@@ -32,6 +32,7 @@ public class Model {
         bombPos = new HashSet<>();
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
+        newBoard();
     }
     public Model(int x, int y, int bombs){
         level = 0; //Custom make level become 0
@@ -44,8 +45,16 @@ public class Model {
         bombPos = new HashSet<>();
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
+        newBoard();
     }
 
+    public void newBoard(){
+        for(int i = 0; i < board.length; i++){
+            for (int j = 0; j < board[i].length; j++){
+                board[j][i] = 20;
+            }
+        }
+    }
 
     public void changeLevel(int lvl){
         //0 is the Height
@@ -81,6 +90,21 @@ public class Model {
         noMarkersAvail = bombs;
         board = new int[x][y];
     }
+
+    public void gridPressed(int x, int y){
+
+        if(board[x][y] >= 80 && board[x][y] <= 89 ){
+            board[x][y] = board[x][y]%80 + 130;
+        }
+        else if(board[x][y] == 20){
+            int[] firstClickPos = new int[2];
+            firstClickPos[0] = x;
+            firstClickPos[1] = y;
+            setUpBoard(firstClickPos);
+        }
+        board[x][y] = board[x][y]%80 + 130;
+    }
+
 
     public void setUpBoard(int[] firstClickPos){
         if(!firstClick){
@@ -118,7 +142,7 @@ public class Model {
             contains(bombPos,coor);
             if(!contains(bombPos,coor) && !contains(noBombArea,coor)){
                 bombPos.add(coor);
-                board[posX][posY] = 99;
+                board[posX][posY] = 89;
                 positionFilled.add(coor);
             }
         }
@@ -138,14 +162,15 @@ public class Model {
 
         for (int[] i : numPos){
             positionFilled.add(i);
-            if(board[i[0]][i[1]]  == -1){
-                board[i[0]][i[1]] = countCoord(numPos,i);
+            if(board[i[0]][i[1]]  == 20){
+                board[i[0]][i[1]] = countCoord(numPos,i) + 80;
+                System.out.println(board[i[0]][i[1]] + " " +countCoord(numPos,i));
             }
         }
         for(int i = 0; i < x; i++){
             for (int j = 0; j < y; j++){
-                if(board[i][j] == -1){
-                    board[i][j] = 0;
+                if(board[i][j] == 20){
+                    board[i][j] = 80;
                 }
             }
         }
@@ -317,20 +342,11 @@ public class Model {
         for (int i = 0; i < y; i++) {
             boardString += "[";
             for (int j = 0; j < x; j++) {
-                if (board[j][i] != -1) {
-                    if (board[j][i] != -1) {
-                        boardString += board[j][i];
-                    } else {
-                        boardString += 0;
-                    }
-                    if (j != x - 1) {
-                        boardString += ",";
-                    }
-                }
-                boardString += "]";
-                if (i != x - 1) {
-                    boardString += "\n";
-                }
+                boardString += board[j][i] + ",";
+            }
+            boardString += "]";
+            if (i != x - 1) {
+                boardString += "\n";
             }
         }
         boardString += "]";

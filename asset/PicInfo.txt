@@ -1,0 +1,21 @@
+1-8 is the number 
+
+80-88 is the number hidden including empty 
+89 is the hidden bomb
+
+130-139 is the state waiting to be released 0-9 is from empty to bomb
+
+
+
+19 is clicked empty
+20 is unclick or starting cell
+
+21 is marked
+210-219 is the marked item from 0 to 9 to bomb
+
+22 is question mark
+23 is question mark clicked
+98 is mark wrongly spot
+99 is bomb 
+100 is bomb red
+ 

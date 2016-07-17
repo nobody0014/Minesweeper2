@@ -8,11 +8,10 @@ import javax.swing.*;
  */
 public class Controller {
     private Model gameModel;
-    private View boardPainter;
+    private View gamePanel;
     private JFrame mainFrame;
     private TimeThread timeThread;
     private Container controlContainer;
-    private JPanel gamePanel;
     private JPanel infoPanel;
     private GridBagLayout controlLayout;
     private GridBagLayout gameLayout;
@@ -35,11 +34,9 @@ public class Controller {
 
     public Controller(){
         gameModel = new Model();
-        boardPainter = new View();
+        gamePanel = new View(gameModel.getBoard());
     }
     public void setUpFrame(){
-        int x = gameModel.getGridX();
-        int y = gameModel.getGridY();
         tk =  Toolkit.getDefaultToolkit();
         dim = tk.getScreenSize();
 
@@ -70,7 +67,7 @@ public class Controller {
         infoConstraint = new GridBagConstraints();
         infoConstraint.gridy = 0;
         infoConstraint.fill = GridBagConstraints.HORIZONTAL;
-        infoConstraint.anchor = GridBagConstraints.PAGE_START;
+        infoConstraint.anchor = GridBagConstraints.LINE_START;
         controlContainer.add(infoPanel,infoConstraint);
 
         //this constraint is used for all the components in the infopanel
@@ -104,17 +101,18 @@ public class Controller {
         infoPanel.setVisible(true);
 
         //The actual game area creation
-        gamePanel = new JPanel();
         gameLayout = new GridBagLayout();
         gameConstraint = new GridBagConstraints();
         gamePanel.setLayout(gameLayout);
+        gameConstraint.gridx = 0;
         gameConstraint.gridy = 1;
-        gameConstraint.anchor = GridBagConstraints.CENTER;
+        gameConstraint.ipady = 40*gameModel.getGridY();
+        gameConstraint.ipadx = 40*gameModel.getGridX();
+        gameConstraint.fill = GridBagConstraints.CENTER;
         gameConstraint.fill = GridBagConstraints.BOTH;
-//        gameConstraint.ipady = GC.getGridY()*45;
+        gamePanel.addMouseListener(new PanelListener());
         controlContainer.add(gamePanel,gameConstraint);
 
-        //Only the game and info panel are needed to be added into controlcontainer
 
         //Make the actual game grid
 
@@ -183,40 +181,36 @@ public class Controller {
     }
 
 
-
-    public void makeGrid(){
-
+    public void coordToBoardLocation(int coordX, int coordY){
+        int x = coordX / gamePanel.getDefaultIconSize();
+        int y = coordY / gamePanel.getDefaultIconSize();
+        System.out.println(x + " " + y);
+        if(!Model.firstClick) {
+            gameModel.gridPressed(x, y);
+            Model.firstClick = true;
+        }
     }
-    public void makeGrid(int[][] board){
-
-    }
 
 
-    private class FirstButtonClickListener implements ActionListener{
-        public void actionPerformed(ActionEvent e){
-            if(!Model.firstClick){
-                int[] pos = (int[]) e.getSource();
-                System.out.println("Set up new board");
-                gameModel.setUpBoard(pos);
-                System.out.println("Done");
-                System.out.println("Put in the UI");
-                makeGrid(gameModel.getBoard());
-                System.out.println("Done");
-                Model.firstClick = true;
-                System.out.println(gameModel.boardString());
-                System.out.println("Revealing the opening moves");
-                System.out.println("Getting area to reveal");
-                Set<int[]> someArea = gameModel.getAreaToReveal(pos, new HashSet<>());
-                someArea.add(pos);
-                System.out.println("Done");
-                for (int[] i: someArea){
-                    System.out.println(Arrays.toString(i));
-                    gameModel.revealedArea.add(i);
-//                    gameModel[i[0]][i[1]].reveal();
-                }
-                System.out.println("Done");
-                timeThread.start();
-            }
+
+    private class PanelListener implements MouseListener{
+        public void mouseClicked(MouseEvent e){
+            
+        }
+        public void mousePressed(MouseEvent e){
+            System.out.println(e.getX() + " " + e.getY());
+            coordToBoardLocation(e.getX(),e.getY());
+            gamePanel.repaint();
+            System.out.println(gameModel.boardString());
+        }
+        public void mouseReleased(MouseEvent e) {
+
+        }
+        public void mouseEntered(MouseEvent e){
+
+        }
+        public void mouseExited(MouseEvent e){
+
         }
     }
     //Overloaded method for changing level
