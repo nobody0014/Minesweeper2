@@ -92,19 +92,37 @@ public class Model {
     }
 
     public void gridPressed(int x, int y){
-
         if(board[x][y] >= 80 && board[x][y] <= 89 ){
+            resetGridPressed();
             board[x][y] = board[x][y]%80 + 130;
         }
         else if(board[x][y] == 20){
-            int[] firstClickPos = new int[2];
-            firstClickPos[0] = x;
-            firstClickPos[1] = y;
-            setUpBoard(firstClickPos);
+            board[x][y] = 19;
         }
-        board[x][y] = board[x][y]%80 + 130;
     }
 
+    //this reset the gridpressed tile that was not released
+    public void resetGridPressed(){
+        if(firstClick){
+            for(int i = 0; i < x; i++){
+                for (int j = 0; j < y; j++){
+                    if(board[i][j]  >= 130 || board[i][j] <= 189){
+                        board[i][j] = board[i][j] - 50;
+                    }
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < x; i++){
+                for (int j = 0; j < y; j++){
+                    if(board[i][j]  >= 130 || board[i][j] <= 189){
+                        board[i][j] = 20;
+                    }
+                }
+            }
+        }
+
+    }
 
     public void setUpBoard(int[] firstClickPos){
         if(!firstClick){

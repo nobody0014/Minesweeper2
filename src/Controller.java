@@ -28,11 +28,13 @@ public class Controller {
     private JMenuItem changeLevel3;
     private Toolkit tk;
     private Dimension dim;
+    private boolean mouseIsPressed;
 
 
 
 
     public Controller(){
+        mouseIsPressed = false;
         gameModel = new Model();
         gamePanel = new View(gameModel.getBoard());
     }
@@ -111,6 +113,7 @@ public class Controller {
         gameConstraint.fill = GridBagConstraints.CENTER;
         gameConstraint.fill = GridBagConstraints.BOTH;
         gamePanel.addMouseListener(new PanelListener());
+        gamePanel.addMouseMotionListener(new mouseMotion());
         controlContainer.add(gamePanel,gameConstraint);
 
 
@@ -185,26 +188,46 @@ public class Controller {
         int x = coordX / gamePanel.getDefaultIconSize();
         int y = coordY / gamePanel.getDefaultIconSize();
         System.out.println(x + " " + y);
-        if(!Model.firstClick) {
-            gameModel.gridPressed(x, y);
-            Model.firstClick = true;
-        }
+        gameModel.gridPressed(x, y);
     }
 
+    private class mouseMotion implements MouseMotionListener{
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            if(mouseIsPressed){
+                gameModel.resetGridPressed();
+                coordToBoardLocation(e.getX(),e.getY());
+                gamePanel.repaint();
+                System.out.println(gameModel.boardString());
+            }
 
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+
+        }
+    }
 
     private class PanelListener implements MouseListener{
         public void mouseClicked(MouseEvent e){
             
         }
         public void mousePressed(MouseEvent e){
-            System.out.println(e.getX() + " " + e.getY());
+            mouseIsPressed = true;
             coordToBoardLocation(e.getX(),e.getY());
             gamePanel.repaint();
             System.out.println(gameModel.boardString());
         }
         public void mouseReleased(MouseEvent e) {
-
+            if(!Model.firstClick){
+                Model.firstClick = true;
+                int[] pos = new int[2];
+                pos[0]  = e.getX();
+                pos[1] = e.getY();
+                gameModel.setUpBoard(pos);
+            }
+            mouseIsPressed = false;
         }
         public void mouseEntered(MouseEvent e){
 
