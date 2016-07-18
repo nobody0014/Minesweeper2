@@ -13,8 +13,8 @@ public class View extends JPanel {
         this.board = board;
     }
     public void paintComponent(Graphics g){
-        for(int i = 0; i < board.length; i++){
-            for (int j = 0; j < board[i].length; j++){
+        for(int i = 0; i < board[0].length; i++){
+            for (int j = 0; j < board.length; j++){
                 int k = board[j][i];
                 Image image = new ImageIcon("asset/" +String.valueOf(k) + ".png").getImage() ;
                 g.drawImage(image, j * defaultIconSize, i *defaultIconSize, defaultIconSize, defaultIconSize,this);

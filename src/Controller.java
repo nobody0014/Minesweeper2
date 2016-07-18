@@ -37,6 +37,7 @@ public class Controller {
         mouseIsPressed = false;
         gameModel = new Model();
         gamePanel = new View(gameModel.getBoard());
+        timeThread = new TimeThread("Timer");
     }
     public void setUpFrame(){
         tk =  Toolkit.getDefaultToolkit();
@@ -77,7 +78,7 @@ public class Controller {
 
         //Creating and setting the field that has the number of markers
         markersNo = new JTextField();
-        markersNo.setPreferredSize(new Dimension(80,30));
+        markersNo.setPreferredSize(new Dimension(85,30));
         markersNo.setLayout(new GridBagLayout());
         markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
         innerInfor.gridx = 0;
@@ -103,6 +104,15 @@ public class Controller {
         infoPanel.setVisible(true);
 
         //The actual game area creation
+        setGamePanel();
+
+
+        //Make the actual game grid
+
+        mainFrame.setVisible(true);
+
+    }
+    public void setGamePanel(){
         gameLayout = new GridBagLayout();
         gameConstraint = new GridBagConstraints();
         gamePanel.setLayout(gameLayout);
@@ -115,12 +125,6 @@ public class Controller {
         gamePanel.addMouseListener(new PanelListener());
         gamePanel.addMouseMotionListener(new mouseMotion());
         controlContainer.add(gamePanel,gameConstraint);
-
-
-        //Make the actual game grid
-
-        mainFrame.setVisible(true);
-
     }
     public void setUpMenu(){
         menuBar = new JMenuBar();
@@ -171,16 +175,12 @@ public class Controller {
         Model.firstClick = false;
         Model.gameOver = false;
         System.out.println("Resetting.....  ");
-        gameModel = new Model(gameModel.getGridX(),gameModel.getGridY(),gameModel.getNumberOfBombs());
-        gamePanel.removeAll();
-        gamePanel.setVisible(false);
-//        gameProcessor.makeBoard();
-        controlContainer.add(gamePanel,gameConstraint);
-        gamePanel.setVisible(true);
+        gameModel.newBoard();
         System.out.println("Done");
         markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
         timeThread.stop();
         timeField.setText("Time = " + 0);
+        gamePanel.repaint();
     }
 
 
@@ -196,13 +196,11 @@ public class Controller {
         @Override
         public void mouseDragged(MouseEvent e) {
             if(mouseIsPressed){
-                System.out.println("gg");
                 gameModel.resetGridPressed();
                 int[] pos = coordToBoardLocation(e.getX(),e.getY());
                 gameModel.gridPressed(pos[0], pos[1]);
                 gamePanel.repaint();
             }
-
         }
 
         @Override
@@ -210,35 +208,44 @@ public class Controller {
     }
 
     private class PanelListener implements MouseListener{
-        public void mouseClicked(MouseEvent e){
-            
-        }
+        public void mouseClicked(MouseEvent e){}
         public void mousePressed(MouseEvent e){
-            mouseIsPressed = true;
             int[] pos = coordToBoardLocation(e.getX(),e.getY());
-            gameModel.gridPressed(pos[0],pos[1]);
-            gamePanel.repaint();
+            if(!Model.gameOver){
+                if(SwingUtilities.isLeftMouseButton(e)){
+                    mouseIsPressed = true;
+                    gameModel.gridPressed(pos[0],pos[1]);
+                }
+                else if(SwingUtilities.isRightMouseButton(e)){
+                    gameModel.toggleMarking(pos[0],pos[1]);
+                    markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
+                }
+                gamePanel.repaint();
+            }
         }
         public void mouseReleased(MouseEvent e) {
-            if(!Model.firstClick){
-                int[] pos = coordToBoardLocation(e.getX(),e.getY());
-                gameModel.setUpBoard(pos);
-                Model.firstClick = true;
-                gamePanel.repaint();
+            int[] pos = coordToBoardLocation(e.getX(),e.getY());
+            if(SwingUtilities.isLeftMouseButton(e)){
+                if(!Model.firstClick){
+                    gameModel.setUpBoard(pos);
+                    timeThread.start();
+                    Model.firstClick = true;
+                }
+                else if(!Model.gameOver){
+                    gameModel.reveal(pos[0],pos[1]);
+                }
+                if(gameModel.getNumbersLeft() == 0){
+                    Model.gameOver = true;
+                }
+                if(Model.gameOver){
+                    timeThread.stop();
+                }
+                mouseIsPressed = false;
             }
-            else{
-                int[] pos = coordToBoardLocation(e.getX(),e.getY());
-                gameModel.reveal(pos[0],pos[1]);
-                gamePanel.repaint();
-            }
-            mouseIsPressed = false;
+            gamePanel.repaint();
         }
-        public void mouseEntered(MouseEvent e){
-
-        }
-        public void mouseExited(MouseEvent e){
-
-        }
+        public void mouseEntered(MouseEvent e){}
+        public void mouseExited(MouseEvent e){}
     }
     //Overloaded method for changing level
     public void newGame(int level){
@@ -264,7 +271,10 @@ public class Controller {
         }
         public void actionPerformed(ActionEvent e){
             if(gameModel.getLevel() != level){
+                controlContainer.remove(gamePanel);
                 newGame(level);
+                gamePanel = new View(gameModel.getBoard());
+                setGamePanel();
                 resizeFrame();
                 centerTheFrame();
             }

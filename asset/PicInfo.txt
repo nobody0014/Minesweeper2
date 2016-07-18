@@ -1,4 +1,5 @@
-1-8 is the number 
+0-8 is the number
+9 is he bomb
 
 80-88 is the number hidden including empty 
 89 is the hidden bomb

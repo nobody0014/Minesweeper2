@@ -21,6 +21,7 @@ public class Model {
     private int noBombs;
     private int noMarkersAvail;
     private int noBombsMarked;
+    private int numbersLeft;
     public Model(){
         level = 1;
         x = 9;
@@ -32,6 +33,7 @@ public class Model {
         bombPos = new HashSet<>();
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
+        numbersLeft = x*y-noBombs;
         newBoard();
     }
     public Model(int x, int y, int bombs){
@@ -45,12 +47,17 @@ public class Model {
         bombPos = new HashSet<>();
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
+        numbersLeft = x*y-noBombs;
         newBoard();
     }
 
     public void newBoard(){
-        for(int i = 0; i < board.length; i++){
-            for (int j = 0; j < board[i].length; j++){
+        resetNumbers();
+        bombPos = new HashSet<>();
+        positionFilled = new HashSet<>();
+        revealedArea = new HashSet<>();
+        for(int i = 0; i < y; i++){
+            for (int j = 0; j < x; j++){
                 board[j][i] = 20;
             }
         }
@@ -66,6 +73,7 @@ public class Model {
             y = 9;
             noBombs = 10;
             noMarkersAvail = 10;
+            numbersLeft = x*y-noBombs;
         }
         else if(lvl == 2){
             level = lvl;
@@ -73,6 +81,7 @@ public class Model {
             y = 16;
             noBombs = 40;
             noMarkersAvail = 40;
+            numbersLeft = x*y-noBombs;
         }
         else if(lvl == 3){
             level = lvl;
@@ -80,9 +89,11 @@ public class Model {
             y = 16;
             noBombs = 99;
             noMarkersAvail = 99;
+            numbersLeft = x*y-noBombs;
         }
         board = new int[x][y];
     }
+    //For custom setting
     public void changeLevel(int x, int y, int bombs){
         this.x = x;
         this.y = y;
@@ -91,6 +102,7 @@ public class Model {
         board = new int[x][y];
     }
 
+    //For when we are just pressing, it's the transition before pressed
     public void gridPressed(int x, int y){
         if(board[x][y] >= 80 && board[x][y] <= 89 ){
             resetGridPressed();
@@ -124,8 +136,8 @@ public class Model {
 
     }
 
+    //This is for new game, when u first click, just use this function to set it up
     public void setUpBoard(int[] firstClickPos){
-        board[firstClickPos[0]][firstClickPos[1]] = 0;
         if(!firstClick){
             System.out.println("Setting up no bombs area");
             setNoBombArea(firstClickPos);
@@ -136,9 +148,8 @@ public class Model {
             setNumber();
             System.out.println("Complete");
             reveal(firstClickPos[0],firstClickPos[1]);
-        }
-        else{
-            System.out.println("Game has already started");
+            gameOver = false;
+            board[firstClickPos[0]][firstClickPos[1]] = 0;
         }
     }
     private void setNoBombArea(int[] pos){
@@ -196,29 +207,35 @@ public class Model {
     }
 
     public void reveal(int x, int y){
-        if (board[x][y] == 130 || board[x][y] == 19){
+        if(board[x][y] == 139){
+            makeGameOver();
+            board[x][y] = 100;
+        }
+        else if (board[x][y] == 130 || board[x][y] == 19){
+            board[x][y] = 80;
             int[] pos = new int[2];
             pos[0] = x;
             pos[1] = y;
-            Set<int[]> thisArea = getAreaToReveal(pos, new HashSet<int[]>());
+            Set<int[]> thisArea = getAreaToReveal(pos, new HashSet<>());
             for (int[] i: thisArea){
                 int value = board[i[0]][i[1]];
                 if(value >= 80 && value <= 89){
                     board[i[0]][i[1]] -= 80;
                 }
             }
+            setNumbersLeft();
         }
-        else{
+        else if(board[x][y] >= 131 && board[x][y] <= 138){
             board[x][y] -= 130;
+            numbersLeft--;
         }
-
     }
 
     public Set<int[]> getAreaToReveal(int [] pos, Set<int[]> area){
         if(!checkValidPos(pos)){
             return area;
         }
-        else if(board[pos[0]][pos[1]] >= 80 && board[pos[0]][pos[1]] <= 89){
+        else if(board[pos[0]][pos[1]] == 80 ){
             HashSet<int[]> directions = getAllDirection(pos);
             area.add(pos);
             for (int[] i: directions){
@@ -238,6 +255,29 @@ public class Model {
         else {
             area.add(pos);
             return area;
+        }
+    }
+
+    //Also does toggle the marking of a grid
+    public void toggleMarking(int x, int y){
+        if(board[x][y] >= 210 && board[x][y] <= 219){
+            board[x][y] -=130;
+            this.addNoMarkersAvail();
+        }
+        else if(board[x][y] >= 80 && board[x][y] <= 89){
+            board[x][y] += 130;
+            this.minusNoMarkersAvail();
+        }
+    }
+
+    private void makeGameOver(){
+        gameOver = true;
+        for(int i = 0; i < x; i++){
+            for (int j = 0; j < y; j++){
+                if(board[i][j] == 89){
+                    board[i][j] = board[i][j] - 80;
+                }
+            }
         }
     }
 
@@ -264,7 +304,6 @@ public class Model {
 
     //Evaluating Coordinate if they are the same or not (true if same) (false if not same)
     private boolean evaluate(int[] i, int[] j){
-        boolean check =  (i[0] == j[0] && i[1] == j[1]);
         if(i[0] == j[0] && i[1] == j[1]){
             return true;
         }
@@ -342,6 +381,22 @@ public class Model {
             changeLevel(lvl);
         }
     }
+    public void resetNumbers(){
+        numbersLeft = x*y-noBombs;
+    }
+    //use this to set the numbersleft when alot of numbers are reduced in one click
+    public void setNumbersLeft(){
+        int count = 0;
+        for(int i = 0; i < x; i++){
+            for (int j = 0; j < y; j++){
+                if(board[i][j] >= 0 && board[i][j] <= 8){
+                   count++;
+                }
+            }
+        }
+        numbersLeft = x*y-noBombs-count;
+    }
+
 
 
     //Getter methods start here
@@ -374,6 +429,7 @@ public class Model {
     //Get level
     public int getLevel(){ return level;}
 
+    public int getNumbersLeft(){ return numbersLeft;}
     //Get the state of the board (in string form).
     public String boardString() {
         String boardString = "[";
