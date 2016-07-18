@@ -106,7 +106,7 @@ public class Model {
         if(firstClick){
             for(int i = 0; i < x; i++){
                 for (int j = 0; j < y; j++){
-                    if(board[i][j]  >= 130 || board[i][j] <= 189){
+                    if(board[i][j]  >= 130 && board[i][j] <= 139){
                         board[i][j] = board[i][j] - 50;
                     }
                 }
@@ -115,7 +115,7 @@ public class Model {
         else{
             for(int i = 0; i < x; i++){
                 for (int j = 0; j < y; j++){
-                    if(board[i][j]  >= 130 || board[i][j] <= 189){
+                    if(board[i][j] == 19){
                         board[i][j] = 20;
                     }
                 }
@@ -125,6 +125,7 @@ public class Model {
     }
 
     public void setUpBoard(int[] firstClickPos){
+        board[firstClickPos[0]][firstClickPos[1]] = 0;
         if(!firstClick){
             System.out.println("Setting up no bombs area");
             setNoBombArea(firstClickPos);
@@ -134,6 +135,7 @@ public class Model {
             System.out.println("Put in Numbers and Empties");
             setNumber();
             System.out.println("Complete");
+            reveal(firstClickPos[0],firstClickPos[1]);
         }
         else{
             System.out.println("Game has already started");
@@ -182,7 +184,6 @@ public class Model {
             positionFilled.add(i);
             if(board[i[0]][i[1]]  == 20){
                 board[i[0]][i[1]] = countCoord(numPos,i) + 80;
-                System.out.println(board[i[0]][i[1]] + " " +countCoord(numPos,i));
             }
         }
         for(int i = 0; i < x; i++){
@@ -191,6 +192,52 @@ public class Model {
                     board[i][j] = 80;
                 }
             }
+        }
+    }
+
+    public void reveal(int x, int y){
+        if (board[x][y] == 130 || board[x][y] == 19){
+            int[] pos = new int[2];
+            pos[0] = x;
+            pos[1] = y;
+            Set<int[]> thisArea = getAreaToReveal(pos, new HashSet<int[]>());
+            for (int[] i: thisArea){
+                int value = board[i[0]][i[1]];
+                if(value >= 80 && value <= 89){
+                    board[i[0]][i[1]] -= 80;
+                }
+            }
+        }
+        else{
+            board[x][y] -= 130;
+        }
+
+    }
+
+    public Set<int[]> getAreaToReveal(int [] pos, Set<int[]> area){
+        if(!checkValidPos(pos)){
+            return area;
+        }
+        else if(board[pos[0]][pos[1]] >= 80 && board[pos[0]][pos[1]] <= 89){
+            HashSet<int[]> directions = getAllDirection(pos);
+            area.add(pos);
+            for (int[] i: directions){
+                if(checkValidPos(i)){
+                    if(board[i[0]][i[1]] == 89 || contains(revealedArea,i) || contains(area,i)){
+                        continue;
+                    }
+                    area.add(i);
+                    Set<int[]> results = getAreaToReveal(i,area);
+                    for (int[] each: results ){
+                        area.add(each);
+                    }
+                }
+            }
+            return area;
+        }
+        else {
+            area.add(pos);
+            return area;
         }
     }
 
@@ -282,33 +329,6 @@ public class Model {
     }
 
 
-
-    public Set<int[]> getAreaToReveal(int [] pos, Set<int[]> area){
-        if(!checkValidPos(pos)){
-            return area;
-        }
-        else if(board[pos[0]][pos[1]] == 0 ){
-            HashSet<int[]> directions = getAllDirection(pos);
-            area.add(pos);
-            for (int[] i: directions){
-                if(checkValidPos(i)){
-                    if(board[i[0]][i[1]] == 99 || contains(revealedArea,i) || contains(area,i)){
-                        continue;
-                    }
-                    area.add(i);
-                    Set<int[]> results = getAreaToReveal(i,area);
-                    for (int[] each: results ){
-                        area.add(each);
-                    }
-                }
-            }
-            return area;
-        }
-        else {
-            area.add(pos);
-            return area;
-        }
-    }
     //Some getter methods for only a few necessary variables
     public void addNoBombsMarked(){noBombsMarked++;}
     public void minusNoBombsMarked(){noBombsMarked--;}

@@ -184,29 +184,29 @@ public class Controller {
     }
 
 
-    public void coordToBoardLocation(int coordX, int coordY){
-        int x = coordX / gamePanel.getDefaultIconSize();
-        int y = coordY / gamePanel.getDefaultIconSize();
-        System.out.println(x + " " + y);
-        gameModel.gridPressed(x, y);
+    public int[] coordToBoardLocation(int coordX, int coordY){
+        int[] pos = new int[2];
+        pos[0] = coordX / gamePanel.getDefaultIconSize();
+        pos[1] = coordY / gamePanel.getDefaultIconSize();
+        return pos;
+
     }
 
     private class mouseMotion implements MouseMotionListener{
         @Override
         public void mouseDragged(MouseEvent e) {
             if(mouseIsPressed){
+                System.out.println("gg");
                 gameModel.resetGridPressed();
-                coordToBoardLocation(e.getX(),e.getY());
+                int[] pos = coordToBoardLocation(e.getX(),e.getY());
+                gameModel.gridPressed(pos[0], pos[1]);
                 gamePanel.repaint();
-                System.out.println(gameModel.boardString());
             }
 
         }
 
         @Override
-        public void mouseMoved(MouseEvent e) {
-
-        }
+        public void mouseMoved(MouseEvent e) {}
     }
 
     private class PanelListener implements MouseListener{
@@ -215,17 +215,21 @@ public class Controller {
         }
         public void mousePressed(MouseEvent e){
             mouseIsPressed = true;
-            coordToBoardLocation(e.getX(),e.getY());
+            int[] pos = coordToBoardLocation(e.getX(),e.getY());
+            gameModel.gridPressed(pos[0],pos[1]);
             gamePanel.repaint();
-            System.out.println(gameModel.boardString());
         }
         public void mouseReleased(MouseEvent e) {
             if(!Model.firstClick){
-                Model.firstClick = true;
-                int[] pos = new int[2];
-                pos[0]  = e.getX();
-                pos[1] = e.getY();
+                int[] pos = coordToBoardLocation(e.getX(),e.getY());
                 gameModel.setUpBoard(pos);
+                Model.firstClick = true;
+                gamePanel.repaint();
+            }
+            else{
+                int[] pos = coordToBoardLocation(e.getX(),e.getY());
+                gameModel.reveal(pos[0],pos[1]);
+                gamePanel.repaint();
             }
             mouseIsPressed = false;
         }

@@ -26,4 +26,20 @@ public class View extends JPanel {
     public int getDefaultIconSize(){
         return defaultIconSize;
     }
+    public String boardString() {
+        String boardString = "[";
+        for (int i = 0; i < board.length; i++) {
+            boardString += "[";
+            for (int j = 0; j < board[i].length; j++) {
+                boardString += board[j][i] + ",";
+            }
+            boardString += "]";
+            if (i != board.length-1) {
+                boardString += "\n";
+            }
+        }
+        boardString += "]";
+        return boardString;
+
+    }
 }
