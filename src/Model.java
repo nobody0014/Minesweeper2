@@ -22,6 +22,7 @@ public class Model {
     private int noMarkersAvail;
     private int noBombsMarked;
     private int numbersLeft;
+    private boolean hintMode;
     public Model(){
         level = 1;
         x = 9;
@@ -34,6 +35,7 @@ public class Model {
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
         numbersLeft = x*y-noBombs;
+        hintMode = false;
         newBoard();
     }
     public Model(int x, int y, int bombs){
@@ -48,6 +50,7 @@ public class Model {
         positionFilled = new HashSet<>();
         revealedArea = new HashSet<>();
         numbersLeft = x*y-noBombs;
+        hintMode = false;
         newBoard();
     }
     public void changeLevel(int lvl){
@@ -105,6 +108,7 @@ public class Model {
         }
     }
     public void resetGameState(){
+        hintMode = false;
         firstClick = false;
         gameOver = false;
         noBombsMarked = 0;
@@ -212,9 +216,13 @@ public class Model {
     }
 
     public void reveal(int x, int y){
-        if(board[x][y] == 139){
+        if(board[x][y] == 139 && !hintMode){
             makeGameOver();
             board[x][y] = 100;
+        }
+        else if(board[x][y] == 139 && hintMode){
+            board[x][y] = 21;
+            minusNoMarkersAvail();
         }
         else if (board[x][y] == 130 || board[x][y] == 19){
             board[x][y] = 80;
@@ -387,6 +395,7 @@ public class Model {
     public void minusNoMarkersAvail(){ noMarkersAvail--;}
     public void setFirstClick(boolean k){firstClick = k;}
     public void setGameOver(boolean k){gameOver = k;}
+    public void setHintMode(boolean k){hintMode = k;}
     public void setLevel(int lvl){
         if(lvl > 3 || lvl < 1){
             System.out.println("Invalid preset level");
@@ -444,6 +453,8 @@ public class Model {
     public int getLevel(){ return level;}
 
     public int getNumbersLeft(){ return numbersLeft;}
+
+    public boolean getHintMode(){ return hintMode;}
 
     public boolean getFirstClick(){return firstClick;}
     public boolean getGameOver(){return gameOver;}

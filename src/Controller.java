@@ -21,6 +21,7 @@ public class Controller {
     private JMenuBar menuBar;
     private JMenu menu;
     private JButton newGameB;
+    private JButton hintB;
     private JTextField markersNo;
     private JTextField timeField;
     private JMenuItem changeLevel1;
@@ -101,6 +102,13 @@ public class Controller {
         innerInfor.gridx = 2;
         infoPanel.add(timeField,innerInfor);
 
+        hintB = new JButton();
+        innerInfor.anchor = GridBagConstraints.FIRST_LINE_END;
+        hintB.setText("Hint");
+        hintB.addActionListener(new HintListener());
+        infoPanel.add(hintB,innerInfor);
+
+
         infoPanel.setVisible(true);
 
         //The actual game area creation
@@ -108,7 +116,7 @@ public class Controller {
 
 
         //Make the actual game grid
-
+        mainFrame.addMouseListener(new MainFrameListener());
         mainFrame.setVisible(true);
 
     }
@@ -170,6 +178,7 @@ public class Controller {
     }
 
     public void newGame(){
+        mainFrame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         gameModel.resetGameState();
         System.out.println("Resetting.....  ");
         gameModel.newBoard();
@@ -238,6 +247,10 @@ public class Controller {
                 if(gameModel.getGameOver()){
                     timeThread.stop();
                 }
+                if(gameModel.getHintMode()){
+                    gameModel.setHintMode(false);
+                    mainFrame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
                 mouseIsPressed = false;
             }
             gamePanel.repaint();
@@ -256,6 +269,29 @@ public class Controller {
         public void actionPerformed(ActionEvent e){
             if(gameModel.getFirstClick()){
                 newGame();
+            }
+        }
+    }
+
+    private class MainFrameListener implements MouseListener{
+        public void mouseClicked(MouseEvent e){}
+        public void mousePressed(MouseEvent e){}
+        public void mouseReleased(MouseEvent e) {
+            if(SwingUtilities.isLeftMouseButton(e)){
+                if(gameModel.getHintMode()){
+                    gameModel.setHintMode(false);
+                    mainFrame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
+            }
+        }
+        public void mouseEntered(MouseEvent e){}
+        public void mouseExited(MouseEvent e){}
+    }
+    private class HintListener implements ActionListener{
+        public void actionPerformed(ActionEvent e){
+            if(!gameModel.getHintMode()){
+                gameModel.setHintMode(true);
+                mainFrame.setCursor(new Cursor(Cursor.HAND_CURSOR));
             }
         }
     }
