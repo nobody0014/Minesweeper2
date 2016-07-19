@@ -8,9 +8,9 @@ import javax.swing.*;
  * Created by wit on 7/14/2016.
  */
 public class Model {
-    public static boolean firstClick = false;
-    public static boolean gameOver = false;
-    public HashSet<int[]> revealedArea;
+    private boolean firstClick = false;
+    private boolean gameOver = false;
+    private HashSet<int[]> revealedArea;
     private HashSet<int[]> bombPos;
     private HashSet<int[]> noBombArea;
     private HashSet<int[]> positionFilled;
@@ -50,19 +50,6 @@ public class Model {
         numbersLeft = x*y-noBombs;
         newBoard();
     }
-
-    public void newBoard(){
-        resetNumbers();
-        bombPos = new HashSet<>();
-        positionFilled = new HashSet<>();
-        revealedArea = new HashSet<>();
-        for(int i = 0; i < y; i++){
-            for (int j = 0; j < x; j++){
-                board[j][i] = 20;
-            }
-        }
-    }
-
     public void changeLevel(int lvl){
         //0 is the Height
         //1 is the Width
@@ -101,6 +88,40 @@ public class Model {
         noMarkersAvail = bombs;
         board = new int[x][y];
     }
+    //This is for new game, when u first click, just use this function to set it up
+    public void setUpBoard(int[] firstClickPos){
+        if(!firstClick){
+            System.out.println("Setting up no bombs area");
+            setNoBombArea(firstClickPos);
+            System.out.println("Put in bombs");
+            setBombs();
+            System.out.println("Complete");
+            System.out.println("Put in Numbers and Empties");
+            setNumber();
+            System.out.println("Complete");
+            reveal(firstClickPos[0],firstClickPos[1]);
+            gameOver = false;
+            board[firstClickPos[0]][firstClickPos[1]] = 0;
+        }
+    }
+    public void resetGameState(){
+        firstClick = false;
+        gameOver = false;
+        noBombsMarked = 0;
+        noMarkersAvail = noBombs;
+        numbersLeft = x*y-noBombs;
+    }
+
+    public void newBoard(){
+        bombPos = new HashSet<>();
+        positionFilled = new HashSet<>();
+        revealedArea = new HashSet<>();
+        for(int i = 0; i < y; i++){
+            for (int j = 0; j < x; j++){
+                board[j][i] = 20;
+            }
+        }
+    }
 
     //For when we are just pressing, it's the transition before pressed
     public void gridPressed(int x, int y){
@@ -136,22 +157,6 @@ public class Model {
 
     }
 
-    //This is for new game, when u first click, just use this function to set it up
-    public void setUpBoard(int[] firstClickPos){
-        if(!firstClick){
-            System.out.println("Setting up no bombs area");
-            setNoBombArea(firstClickPos);
-            System.out.println("Put in bombs");
-            setBombs();
-            System.out.println("Complete");
-            System.out.println("Put in Numbers and Empties");
-            setNumber();
-            System.out.println("Complete");
-            reveal(firstClickPos[0],firstClickPos[1]);
-            gameOver = false;
-            board[firstClickPos[0]][firstClickPos[1]] = 0;
-        }
-    }
     private void setNoBombArea(int[] pos){
         noBombArea = getAllDirection(pos);
         // I do not want any bomb to be beside the point where the user start clicking because it might result in
@@ -269,7 +274,14 @@ public class Model {
             this.minusNoMarkersAvail();
         }
     }
-
+    //this is called when the game ends in case the player didnt use all the markers.
+    public void markAllBombs(){
+        for(int[] i: bombPos){
+            if(board[i[0]][i[1]] == 89){
+                board[i[0]][i[1]] = 219;
+            }
+        }
+    }
     private void makeGameOver(){
         gameOver = true;
         for(int i = 0; i < x; i++){
@@ -373,6 +385,8 @@ public class Model {
     public void minusNoBombsMarked(){noBombsMarked--;}
     public void addNoMarkersAvail(){ noMarkersAvail++;}
     public void minusNoMarkersAvail(){ noMarkersAvail--;}
+    public void setFirstClick(boolean k){firstClick = k;}
+    public void setGameOver(boolean k){gameOver = k;}
     public void setLevel(int lvl){
         if(lvl > 3 || lvl < 1){
             System.out.println("Invalid preset level");
@@ -430,6 +444,9 @@ public class Model {
     public int getLevel(){ return level;}
 
     public int getNumbersLeft(){ return numbersLeft;}
+
+    public boolean getFirstClick(){return firstClick;}
+    public boolean getGameOver(){return gameOver;}
     //Get the state of the board (in string form).
     public String boardString() {
         String boardString = "[";

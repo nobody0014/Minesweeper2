@@ -169,11 +169,8 @@ public class Controller {
         }
     }
 
-
-
     public void newGame(){
-        Model.firstClick = false;
-        Model.gameOver = false;
+        gameModel.resetGameState();
         System.out.println("Resetting.....  ");
         gameModel.newBoard();
         System.out.println("Done");
@@ -211,7 +208,7 @@ public class Controller {
         public void mouseClicked(MouseEvent e){}
         public void mousePressed(MouseEvent e){
             int[] pos = coordToBoardLocation(e.getX(),e.getY());
-            if(!Model.gameOver){
+            if(!gameModel.getGameOver()){
                 if(SwingUtilities.isLeftMouseButton(e)){
                     mouseIsPressed = true;
                     gameModel.gridPressed(pos[0],pos[1]);
@@ -226,18 +223,19 @@ public class Controller {
         public void mouseReleased(MouseEvent e) {
             int[] pos = coordToBoardLocation(e.getX(),e.getY());
             if(SwingUtilities.isLeftMouseButton(e)){
-                if(!Model.firstClick){
+                if(!gameModel.getFirstClick()){
                     gameModel.setUpBoard(pos);
                     timeThread.start();
-                    Model.firstClick = true;
+                    gameModel.setFirstClick(true);
                 }
-                else if(!Model.gameOver){
+                else if(!gameModel.getGameOver()){
                     gameModel.reveal(pos[0],pos[1]);
                 }
                 if(gameModel.getNumbersLeft() == 0){
-                    Model.gameOver = true;
+                    gameModel.setGameOver(true);
+                    gameModel.markAllBombs();
                 }
-                if(Model.gameOver){
+                if(gameModel.getGameOver()){
                     timeThread.stop();
                 }
                 mouseIsPressed = false;
@@ -256,7 +254,7 @@ public class Controller {
     //For the new game button, reset the board
     private class NewGameListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            if(Model.firstClick){
+            if(gameModel.getFirstClick()){
                 newGame();
             }
         }
@@ -318,6 +316,7 @@ public class Controller {
         public void start(){
             toggleGameStarted();
             t = new Thread(this,name);
+            gameStarted = true;
             t.start();
         }
 
