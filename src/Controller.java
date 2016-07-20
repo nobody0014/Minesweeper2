@@ -1,7 +1,5 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
-import java.awt.geom.*;
 import javax.swing.*;
 /**
  * Created by wit on 7/14/2016.
@@ -15,7 +13,6 @@ public class Controller {
     private JPanel infoPanel;
     private GridBagLayout controlLayout;
     private GridBagLayout gameLayout;
-    private GridBagConstraints gridContraints;
     private GridBagConstraints infoConstraint;
     private GridBagConstraints gameConstraint;
     private JMenuBar menuBar;
@@ -27,12 +24,10 @@ public class Controller {
     private JMenuItem changeLevel1;
     private JMenuItem changeLevel2;
     private JMenuItem changeLevel3;
+    private JMenuItem changeCustomLevel;
     private Toolkit tk;
     private Dimension dim;
     private boolean mouseIsPressed;
-
-
-
 
     public Controller(){
         mouseIsPressed = false;
@@ -40,26 +35,21 @@ public class Controller {
         gamePanel = new View(gameModel.getBoard());
         timeThread = new TimeThread("Timer");
     }
+
     public void setUpFrame(){
         tk =  Toolkit.getDefaultToolkit();
         dim = tk.getScreenSize();
-
         mainFrame = new JFrame("Main");
-
 
         //Call resize frame to set size for you
         resizeFrame();
-
         //Set up menuBar and add its item
         setUpMenu();
         mainFrame.setJMenuBar(menuBar);
-
-
         //Set some screen properties
         centerTheFrame();
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setResizable(false);
-
 
         controlContainer = mainFrame.getContentPane();
         controlContainer.setSize(mainFrame.getWidth(),mainFrame.getHeight());
@@ -107,18 +97,13 @@ public class Controller {
         hintB.setText("Hint");
         hintB.addActionListener(new HintListener());
         infoPanel.add(hintB,innerInfor);
-
-
         infoPanel.setVisible(true);
 
         //The actual game area creation
         setGamePanel();
-
-
         //Make the actual game grid
         mainFrame.addMouseListener(new MainFrameListener());
         mainFrame.setVisible(true);
-
     }
     public void setGamePanel(){
         gameLayout = new GridBagLayout();
@@ -151,21 +136,34 @@ public class Controller {
         changeLevel3 = new JMenuItem();
         changeLevel3.setText("Level 3");
         changeLevel3.addActionListener(new ChangeLevelListener(3));
-        PopupMenu customMenu = new PopupMenu();
+
+        changeCustomLevel = new JMenuItem();
+        changeCustomLevel.setText("Custom Level");
+        changeCustomLevel.addActionListener(new ChangeCustomLevelListener());
 
         menu.add(changeLevel1);
         menu.add(changeLevel2);
         menu.add(changeLevel3);
-//        menu.add(customMenu);
+        menu.add(changeCustomLevel);
         menuBar.add(menu);
     }
 
+    //Centering the main frame
     public void centerTheFrame(){
         //Get mid location according to its current width and height
         int midX =  dim.width/2 - mainFrame.getWidth()/2;
         int midY = dim.height/2 - mainFrame.getHeight()/2;
         //Set some screen properties
         mainFrame.setLocation(midX,midY);
+    }
+
+    //for centerring other stuff.
+    public void centerTheFrame(int w, int h, JFrame k){
+        //Get mid location according to its current width and height
+        int midX =  dim.width/2 - w/2;
+        int midY = dim.height/2 - h/2;
+        //Set some screen properties
+        k.setLocation(midX,midY);
     }
 
     public void resizeFrame(){
@@ -263,6 +261,10 @@ public class Controller {
         gameModel.changeLevel(level);
         newGame();
     }
+    public void newGame(int x, int y, int noBombs){
+        gameModel.changeLevel(x,y,noBombs);
+        newGame();
+    }
 
     //For the new game button, reset the board
     private class NewGameListener implements ActionListener{
@@ -296,8 +298,8 @@ public class Controller {
         }
     }
 
-
     //For the menu
+    //This is for the predefined levels
     private class ChangeLevelListener implements ActionListener{
         private int level;
         public ChangeLevelListener(int level){
@@ -311,6 +313,120 @@ public class Controller {
                 setGamePanel();
                 resizeFrame();
                 centerTheFrame();
+            }
+        }
+    }
+
+    //Creating another frame to handle the customlevel
+    //This also disable the mainFrame in order to make the game unplayable while setting
+    private class ChangeCustomLevelListener implements ActionListener{
+        JLabel mainLabel;
+        JFrame changeLevelFrame;
+        JLabel widthLabel;
+        JTextField widthField;
+        JLabel heightLabel;
+        JTextField heightField;
+        JLabel noBombsLabel;
+        JTextField noBombsField;
+        JButton enterButton;
+
+        public void actionPerformed(ActionEvent e){
+            mainFrame.setEnabled(false);
+            changeLevelFrame = new JFrame();
+            changeLevelFrame.addWindowListener(new changeLevelWindowListener());
+            changeLevelFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            changeLevelFrame.setName("Custom Level:");
+            changeLevelFrame.setSize(new Dimension(200,150));
+            changeLevelFrame.setLayout(new GridBagLayout());
+            GridBagConstraints changeLevelConstraint = new GridBagConstraints();
+
+            mainLabel = new JLabel("Custom Level");
+            changeLevelConstraint.anchor = GridBagConstraints.FIRST_LINE_START;
+            changeLevelConstraint.gridy = 0;
+            changeLevelConstraint.gridx = 0;
+            changeLevelFrame.add(mainLabel,changeLevelConstraint);
+
+            widthLabel = new JLabel("X:");
+            changeLevelConstraint.gridy = 1;
+            changeLevelConstraint.gridx = 0;
+            changeLevelFrame.add(widthLabel,changeLevelConstraint);
+
+            widthField = new JTextField(5);
+            changeLevelConstraint.gridy = 1;
+            changeLevelConstraint.gridx = 1;
+            changeLevelFrame.add(widthField,changeLevelConstraint);
+
+            heightLabel = new JLabel("Y:");
+            changeLevelConstraint.gridy = 2;
+            changeLevelConstraint.gridx = 0;
+            changeLevelFrame.add(heightLabel,changeLevelConstraint);
+
+            heightField = new JTextField(5);
+            changeLevelConstraint.gridy = 2;
+            changeLevelConstraint.gridx = 1;
+            changeLevelFrame.add(heightField,changeLevelConstraint);
+
+            noBombsLabel = new JLabel("Bombs:");
+            changeLevelConstraint.gridy = 3;
+            changeLevelConstraint.gridx = 0;
+            changeLevelFrame.add(noBombsLabel,changeLevelConstraint);
+
+            noBombsField = new JTextField(5);
+            changeLevelConstraint.gridy = 3;
+            changeLevelConstraint.gridx = 1;
+            changeLevelFrame.add(noBombsField,changeLevelConstraint);
+
+            enterButton = new JButton();
+            enterButton.setText("Done");
+            enterButton.addActionListener(new EnterButtonListener());
+            changeLevelConstraint.gridy = 4;
+            changeLevelConstraint.gridx = 1;
+            changeLevelFrame.add(enterButton,changeLevelConstraint);
+
+            centerTheFrame(changeLevelFrame.getWidth(),changeLevelFrame.getHeight(),changeLevelFrame);
+            changeLevelFrame.setVisible(true);
+
+        }
+        //thank you stack overflow for telling me this class, best class ever
+        private class changeLevelWindowListener implements WindowListener {
+
+            public void windowClosing(WindowEvent e) {
+                changeLevelFrame.setVisible(false);
+                changeLevelFrame.dispose();
+                mainFrame.setEnabled(true);
+            }
+            //it does nothing on close so we have to use closing
+            public void windowClosed(WindowEvent e) {}
+            public void windowActivated(WindowEvent e) {}
+            public void windowDeactivated(WindowEvent e) {}
+            public void windowDeiconified(WindowEvent e) {}
+            public void windowIconified(WindowEvent e) {}
+            public void windowOpened(WindowEvent e) {}
+        }
+
+        //This is where things gets crappy
+        //my enterbutton listener cant do crap to the changeCustomLevelframe if it cant access to the content
+        //therefore i have to make this thing a class within class
+        private class EnterButtonListener implements ActionListener{
+            public void actionPerformed(ActionEvent e){
+                if(heightField.getText().length() > 0 && widthField.getText().length() > 0 && noBombsField.getText().length() > 0){
+                    int x = Integer.valueOf(widthField.getText());
+                    int y = Integer.valueOf(heightField.getText());
+                    int noBombs = Integer.valueOf(noBombsField.getText());
+                    try{
+                        controlContainer.remove(gamePanel);
+                        newGame(x,y,noBombs);
+                        gamePanel = new View(gameModel.getBoard());
+                        setGamePanel();
+                        resizeFrame();
+                        centerTheFrame();
+                        mainFrame.setEnabled(true);
+                        changeLevelFrame.setVisible(false);
+                    }catch (Exception exp){
+                        System.out.println("The value input is not valid");
+                    }
+                }
+
             }
         }
     }

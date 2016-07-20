@@ -1,9 +1,5 @@
 import java.util.HashSet;
-import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
-import java.awt.geom.*;
-import javax.swing.*;
 /**
  * Created by wit on 7/14/2016.
  */
@@ -29,21 +25,6 @@ public class Model {
         y = 9;
         noBombs = 10;
         noMarkersAvail = 10;
-        noBombsMarked = 0;
-        board = new int[x][y];
-        bombPos = new HashSet<>();
-        positionFilled = new HashSet<>();
-        revealedArea = new HashSet<>();
-        numbersLeft = x*y-noBombs;
-        hintMode = false;
-        newBoard();
-    }
-    public Model(int x, int y, int bombs){
-        level = 0; //Custom make level become 0
-        this.x = x;
-        this.y = y;
-        noBombs = bombs;
-        noMarkersAvail = bombs;
         noBombsMarked = 0;
         board = new int[x][y];
         bombPos = new HashSet<>();
@@ -89,6 +70,7 @@ public class Model {
         this.y = y;
         noBombs = bombs;
         noMarkersAvail = bombs;
+        numbersLeft = x*y-noBombs;
         board = new int[x][y];
     }
     //This is for new game, when u first click, just use this function to set it up
