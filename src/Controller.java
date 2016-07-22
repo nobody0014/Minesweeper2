@@ -5,6 +5,7 @@ import javax.swing.*;
  * Created by wit on 7/14/2016.
  */
 public class Controller {
+    //instantiate the instance var first, some can be converted to local var but ill leave them here
     private Model gameModel;
     private View gamePanel;
     private JFrame mainFrame;
@@ -30,6 +31,7 @@ public class Controller {
     private boolean mouseIsPressed;
 
     public Controller(){
+        //set mouseispressed, create gameModel, create gamePanel, create timeThread
         mouseIsPressed = false;
         gameModel = new Model();
         gamePanel = new View(gameModel.getBoard());
@@ -37,8 +39,10 @@ public class Controller {
     }
 
     public void setUpFrame(){
+        //This is gotten from a youtube video when I was trying the centralized the frame
         tk =  Toolkit.getDefaultToolkit();
         dim = tk.getScreenSize();
+
         mainFrame = new JFrame("Main");
 
         //Call resize frame to set size for you
@@ -105,6 +109,8 @@ public class Controller {
         mainFrame.addMouseListener(new MainFrameListener());
         mainFrame.setVisible(true);
     }
+
+    //set the gamePanel into the controlContainer, also add 2 listeners
     public void setGamePanel(){
         gameLayout = new GridBagLayout();
         gameConstraint = new GridBagConstraints();
@@ -113,34 +119,39 @@ public class Controller {
         gameConstraint.gridy = 1;
         gameConstraint.ipady = 40*gameModel.getGridY();
         gameConstraint.ipadx = 40*gameModel.getGridX();
-        gameConstraint.fill = GridBagConstraints.CENTER;
-        gameConstraint.fill = GridBagConstraints.BOTH;
         gamePanel.addMouseListener(new PanelListener());
         gamePanel.addMouseMotionListener(new mouseMotion());
         controlContainer.add(gamePanel,gameConstraint);
     }
+
+    //setting up menus and its options
     public void setUpMenu(){
+        //create menu and menut bar, also paint the menuBar
         menuBar = new JMenuBar();
         menuBar.setBorderPainted(true);
         menu = new JMenu("Change Level");
 
-        //Changing to level one
+        //create level one
         changeLevel1 = new JMenuItem();
         changeLevel1.setText("Level 1");
         changeLevel1.addActionListener(new ChangeLevelListener(1));
 
+        //create level two
         changeLevel2 = new JMenuItem();
         changeLevel2.setText("Level 2");
         changeLevel2.addActionListener(new ChangeLevelListener(2));
 
+        //create level 3
         changeLevel3 = new JMenuItem();
         changeLevel3.setText("Level 3");
         changeLevel3.addActionListener(new ChangeLevelListener(3));
 
+        //create custom level
         changeCustomLevel = new JMenuItem();
         changeCustomLevel.setText("Custom Level");
         changeCustomLevel.addActionListener(new ChangeCustomLevelListener());
 
+        //add all of them into menu and then add menu into menubar
         menu.add(changeLevel1);
         menu.add(changeLevel2);
         menu.add(changeLevel3);
@@ -148,7 +159,7 @@ public class Controller {
         menuBar.add(menu);
     }
 
-    //Centering the main frame
+    //Centering the main frame code edited from a youtube vid
     public void centerTheFrame(){
         //Get mid location according to its current width and height
         int midX =  dim.width/2 - mainFrame.getWidth()/2;
@@ -157,7 +168,7 @@ public class Controller {
         mainFrame.setLocation(midX,midY);
     }
 
-    //for centerring other stuff.
+    //for centerring other frame
     public void centerTheFrame(int w, int h, JFrame k){
         //Get mid location according to its current width and height
         int midX =  dim.width/2 - w/2;
@@ -166,6 +177,7 @@ public class Controller {
         k.setLocation(midX,midY);
     }
 
+    //resizing frame
     public void resizeFrame(){
         if(gameModel.getGridX()*45 > 450){
             mainFrame.setSize(gameModel.getGridX() * 45 + 25, 150 + gameModel.getGridY()*45);
@@ -175,19 +187,26 @@ public class Controller {
         }
     }
 
+    //create a new game
     public void newGame(){
+        //reset the cursor in case in the hint mode
         mainFrame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        //call the gameModel to reset everything
         gameModel.resetGameState();
         System.out.println("Resetting.....  ");
+        //call new board in gameModel
         gameModel.newBoard();
         System.out.println("Done");
+        //reset the markersNo
         markersNo.setText("Markers = " + gameModel.getNoMarkersAvail());
+        //Stop the timeThread and reset the field
         timeThread.stop();
         timeField.setText("Time = " + 0);
+        //repaint the board since the board is reset
         gamePanel.repaint();
     }
 
-
+    //We have to convert the position we click in the gamePanel to the legit one that the board use
     public int[] coordToBoardLocation(int coordX, int coordY){
         int[] pos = new int[2];
         pos[0] = coordX / gamePanel.getDefaultIconSize();
@@ -196,9 +215,12 @@ public class Controller {
 
     }
 
+    //mouseMotion to add into the gamePanel to detect
+    //this class is for dragging of mouse when pressing
     private class mouseMotion implements MouseMotionListener{
         @Override
         public void mouseDragged(MouseEvent e) {
+            //keep resetting grid back to the unshown icon and reset it
             if(mouseIsPressed){
                 gameModel.resetGridPressed();
                 int[] pos = coordToBoardLocation(e.getX(),e.getY());
@@ -211,10 +233,12 @@ public class Controller {
         public void mouseMoved(MouseEvent e) {}
     }
 
+    //Listen to mouse clicks in the gamePanel
     private class PanelListener implements MouseListener{
         public void mouseClicked(MouseEvent e){}
         public void mousePressed(MouseEvent e){
             int[] pos = coordToBoardLocation(e.getX(),e.getY());
+            //
             if(!gameModel.getGameOver()){
                 if(SwingUtilities.isLeftMouseButton(e)){
                     mouseIsPressed = true;
@@ -275,6 +299,7 @@ public class Controller {
         }
     }
 
+    //for hint mode, if click anywhere in mainframe reset the hint mode
     private class MainFrameListener implements MouseListener{
         public void mouseClicked(MouseEvent e){}
         public void mousePressed(MouseEvent e){}
@@ -289,6 +314,7 @@ public class Controller {
         public void mouseEntered(MouseEvent e){}
         public void mouseExited(MouseEvent e){}
     }
+    //for hint button, clicking on this change the cursor and set the hint mode to true
     private class HintListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
             if(!gameModel.getHintMode()){
@@ -331,17 +357,20 @@ public class Controller {
         JButton enterButton;
 
         public void actionPerformed(ActionEvent e){
+            //disable the mainframe
             mainFrame.setEnabled(false);
+            //this following lines set new frame, add windowlistener and make the close button do nothing
             changeLevelFrame = new JFrame();
             changeLevelFrame.addWindowListener(new changeLevelWindowListener());
             changeLevelFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            changeLevelFrame.setName("Custom Level:");
+
+            //Customized the frame
+            changeLevelFrame.setName("Custom Level");
             changeLevelFrame.setSize(new Dimension(200,150));
             changeLevelFrame.setLayout(new GridBagLayout());
             GridBagConstraints changeLevelConstraint = new GridBagConstraints();
 
             mainLabel = new JLabel("Custom Level");
-            changeLevelConstraint.anchor = GridBagConstraints.FIRST_LINE_START;
             changeLevelConstraint.gridy = 0;
             changeLevelConstraint.gridx = 0;
             changeLevelFrame.add(mainLabel,changeLevelConstraint);
@@ -389,13 +418,13 @@ public class Controller {
         }
         //thank you stack overflow for telling me this class, best class ever
         private class changeLevelWindowListener implements WindowListener {
-
+            //Only care when window is closing
             public void windowClosing(WindowEvent e) {
+                //set the visibility to false before disposing it then set mainframe to be enabled, thats the purpose of this class
                 changeLevelFrame.setVisible(false);
                 changeLevelFrame.dispose();
                 mainFrame.setEnabled(true);
             }
-            //it does nothing on close so we have to use closing
             public void windowClosed(WindowEvent e) {}
             public void windowActivated(WindowEvent e) {}
             public void windowDeactivated(WindowEvent e) {}
@@ -405,26 +434,43 @@ public class Controller {
         }
 
         //This is where things gets crappy
-        //my enterbutton listener cant do crap to the changeCustomLevelframe if it cant access to the content
-        //therefore i have to make this thing a class within class
+        //my enterbutton listener cant do anything to the changeCustomLevelframe if it cant access to the content
+        //therefore i have to make this thing a class within class within a class
         private class EnterButtonListener implements ActionListener{
             public void actionPerformed(ActionEvent e){
                 if(heightField.getText().length() > 0 && widthField.getText().length() > 0 && noBombsField.getText().length() > 0){
                     int x = Integer.valueOf(widthField.getText());
                     int y = Integer.valueOf(heightField.getText());
                     int noBombs = Integer.valueOf(noBombsField.getText());
-                    try{
-                        controlContainer.remove(gamePanel);
-                        newGame(x,y,noBombs);
-                        gamePanel = new View(gameModel.getBoard());
-                        setGamePanel();
-                        resizeFrame();
-                        centerTheFrame();
-                        mainFrame.setEnabled(true);
-                        changeLevelFrame.setVisible(false);
-                    }catch (Exception exp){
-                        System.out.println("The value input is not valid");
+                    //Placing the restriction on the custom levels that the user can put
+                    if(x > 3 && y > 3 && noBombs < x*y -9){
+                        try{
+                            //remove the gamePanel first
+                            controlContainer.remove(gamePanel);
+                            //set the gameboard and call new game
+                            newGame(x,y,noBombs);
+                            //get new gamePanel
+                            gamePanel = new View(gameModel.getBoard());
+                            //put gamepanel in the properplace
+                            setGamePanel();
+                            //resize the frame
+                            resizeFrame();
+                            //center it
+                            centerTheFrame();
+
+                            //then make the mainframe usuable againa and make the change levelFrame not visible and dispose it
+                            mainFrame.setEnabled(true);
+                            changeLevelFrame.setVisible(false);
+                            changeLevelFrame.dispose();
+                        }catch (Exception exp){
+                            System.out.println("The value input is not valid");
+                        }
                     }
+                    else{
+                        //pop up to show error
+                        JOptionPane.showMessageDialog(changeCustomLevel, "Invalid Inputs");
+                    }
+
                 }
 
             }
@@ -448,14 +494,20 @@ public class Controller {
         }
         //Main running loop
         public void run(){
+            //each run just reset all 4 time except time start
             timeStart = 0;
             timeCurrent = 0;
             timePassed = 0;
             timePrevious = 0;
+            //time start assigned to System.nantime
             timeStart = System.nanoTime();
+            //Main timer loop
             while (gameStarted){
+                //timecurrent is given nanotime
                 timeCurrent = System.nanoTime();
+                //TimePassed is timecurrent - timestart
                 timePassed = (int) ((timeCurrent - timeStart)/1000000000.0);
+                //you have to set the timefield each run
                 timeField.setText("Time = " + timePassed);
                 try{
                     Thread.sleep(500);

@@ -19,6 +19,8 @@ public class Model {
     private int noBombsMarked;
     private int numbersLeft;
     private boolean hintMode;
+
+    //constructor to set the defualt value and also to set the board
     public Model(){
         level = 1;
         x = 9;
@@ -32,6 +34,7 @@ public class Model {
         revealedArea = new HashSet<>();
         numbersLeft = x*y-noBombs;
         hintMode = false;
+        //set the board up
         newBoard();
     }
     public void changeLevel(int lvl){
@@ -311,12 +314,14 @@ public class Model {
         }
         return false;
     }
+    //check if the position is in the board
     private boolean checkValidPos(int pos[]){
         if(pos[0] < 0 || pos[0] >= x || pos[1] < 0 || pos[1] >= y){
             return false;
         }
         return true;
     }
+    //for counting the number of bombs beside that cell.
     private int countCoord(ArrayList<int[]> coords, int[] i){
         int count = 0;
         for(int[] j: coords){
@@ -326,8 +331,8 @@ public class Model {
         }
         return count;
     }
+
     private HashSet<int[]> getAllDirection(int[] pos){
-        //Due to the structure of how objects work, we have to crete new one everytime
         //Otherwise we would be changing the value of the same object over and over again
         int[] t = new int[2];
         int[] tR = new int[2];
@@ -437,7 +442,6 @@ public class Model {
     public int getNumbersLeft(){ return numbersLeft;}
 
     public boolean getHintMode(){ return hintMode;}
-
     public boolean getFirstClick(){return firstClick;}
     public boolean getGameOver(){return gameOver;}
     //Get the state of the board (in string form).

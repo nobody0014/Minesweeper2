@@ -16,7 +16,9 @@ public class View extends JPanel {
         for(int i = 0; i < board[0].length; i++){
             for (int j = 0; j < board.length; j++){
                 int k = board[j][i];
+                //get image from imageicon
                 Image image = new ImageIcon("asset/" +String.valueOf(k) + ".png").getImage() ;
+                //draw image according to the position and size
                 g.drawImage(image, j * defaultIconSize, i *defaultIconSize, defaultIconSize, defaultIconSize,this);
             }
         }
@@ -26,6 +28,7 @@ public class View extends JPanel {
     public int getDefaultIconSize(){
         return defaultIconSize;
     }
+    //same thing as the one in the Controller
     public String boardString() {
         String boardString = "[";
         for (int i = 0; i < board.length; i++) {
